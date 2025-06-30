@@ -120,13 +120,52 @@ class VocabService extends ChangeNotifier {
   void saveSelectedLanguage(String lang) =>
       _settings.put('selectedLanguage', lang);
 
-  // ── Favorites & Learned ─────────────────────────────────────────────
-  void toggleFavorite(int idx) { /* … inchangé … */ }
-  void toggleLearned(int idx)  { /* … inchangé … */ }
+  // ─── Favorites & Learned ────────────────────────────────
+  void toggleFavorite(int idx) {
+    if (favorites.contains(idx)) {
+      for (final key in _favBox.keys.cast<int>().toList()) {
+        if (_favBox.get(key) == idx) _favBox.delete(key);
+      }
+    } else {
+      _favBox.add(idx);
+    }
+    notifyListeners();
+  }
 
-  // ── Reset Progress ──────────────────────────────────────────────────
-  void resetProgressForLevels(List<String> levels) { /* … inchangé … */ }
-  void resetAllProgress()                         { /* … inchangé … */ }
+  void toggleLearned(int idx) {
+    if (learned.contains(idx)) {
+      for (final key in _learnBox.keys.cast<int>().toList()) {
+        if (_learnBox.get(key) == idx) _learnBox.delete(key);
+      }
+    } else {
+      _learnBox.add(idx);
+    }
+    notifyListeners();
+  }
+
+  // ─── Reset Progress ─────────────────────────────────────
+  void resetProgressForLevels(List<String> levels) {
+    for (final key in _learnBox.keys.cast<int>().toList()) {
+      final idx = _learnBox.get(key)!;
+      if (levels.contains('All') || levels.contains(_allWords[idx].level)) {
+        _learnBox.delete(key);
+      }
+    }
+    for (final lvl in levels) {
+      if (lvl != 'All') _posBox.put(lvl, 0);
+    }
+    notifyListeners();
+  }
+
+  void resetAllProgress() {
+    final allLevels = _levelIndex.keys.toList();
+    resetProgressForLevels(['All']);
+    for (final lvl in allLevels) {
+      _posBox.put(lvl, 0);
+    }
+    _learnBox.clear();
+    notifyListeners();
+  }
 
   // ── Dark Mode ───────────────────────────────────────────────────────
   bool isDarkMode() => _settings.get('darkMode', defaultValue: 'false') == 'true';
